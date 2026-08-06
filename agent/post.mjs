@@ -65,9 +65,16 @@ function chooseTheory(history, explicitQuery) {
   if (config.selection === "random") {
     return config.theories[Math.floor(Math.random() * config.theories.length)];
   }
-  // rotate
-  const last = history.at(-1)?.theory;
-  const lastIdx = config.theories.findIndex((t) => t.name === last);
+  // rotate: advance from the last *concept* posted (ignore ad entries, which
+  // have no `theory`), and skip any theory posted in the recent window so we
+  // don't repeat one that just went out.
+  const posted = history.filter((h) => h.theory).map((h) => h.theory);
+  const lastIdx = config.theories.findIndex((t) => t.name === posted.at(-1));
+  const recent = new Set(posted.slice(-config.historyContext));
+  for (let step = 1; step <= config.theories.length; step++) {
+    const cand = config.theories[(lastIdx + step) % config.theories.length];
+    if (!recent.has(cand.name)) return cand;
+  }
   return config.theories[(lastIdx + 1) % config.theories.length];
 }
 
