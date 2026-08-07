@@ -160,5 +160,28 @@
       "#AestheticsIndustry"
     ],
     "urn": "urn:li:share:7490797919239888896"
+  },
+  {
+    "postedAt": "2026-08-07T14:47:03.473Z",
+    "type": "theory",
+    "theory": "Goodhart's Law",
+    "category": "Operational Excellence",
+    "text": "Goodhart's Law: The Day First-Time-Fix Stopped Telling the Truth\n\nIn medical device service, first-time-fix is one of the best numbers we have. Then we put it on a dashboard, tie it to a bonus, and it quietly stops being true.\n\nThis is Goodhart's Law. In plain terms, when a measure becomes a target, people optimize the measure instead of the thing it was meant to represent.\n\nWatch how it shows up:\n\n• A tech marks the call resolved, then books a \"new issue\" ticket next week for the same handpiece.\n\n• A hard fault gets swapped instead of diagnosed, because parts cost less than a second visit on the scorecard.\n\n• A practice is told it's operator error, and the number stays clean while the account gets colder.\n\n• Response time looks great because someone drove out to say the part hasn't shipped.\n\nThe opposite is worth noticing too. Teams that talk about the outcome tend to hit the number anyway.\n\nMetrics describe health. They don't create it.\n\nMeasure the wrong thing and you get exactly that.\n\nWhat if your review meetings asked what actually happened for the customer before asking what the number did?\n\nTargets drive behavior.\n\nPurpose drives the right behavior.\n\nWhich metric on your team's board is being managed instead of earned?",
+    "hashtags": [
+      "#GoodhartsLaw",
+      "#OperationalExcellence",
+      "#FieldService",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#ServiceExcellence",
+      "#FirstTimeFix",
+      "#CustomerExperience",
+      "#CustomerRetention",
+      "#ServiceLeadership",
+      "#KPIs",
+      "#ContinuousImprovement",
+      "#HighTouchService"
+    ],
+    "urn": "urn:li:share:7491505192291459073"
   }
 ]
