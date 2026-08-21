@@ -342,5 +342,12 @@
       "#CustomerSuccess"
     ],
     "urn": "urn:li:share:7496211404765450240"
+  },
+  {
+    "postedAt": "2026-08-21T14:26:14.799Z",
+    "type": "ad",
+    "ad": "proof",
+    "article": "https://hbr.org/2025/05/agentic-ai-is-already-changing-the-workforce",
+    "urn": "urn:li:share:7496573383845875712"
   }
 ]
