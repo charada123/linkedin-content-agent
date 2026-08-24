@@ -349,5 +349,28 @@
     "ad": "proof",
     "article": "https://hbr.org/2025/05/agentic-ai-is-already-changing-the-workforce",
     "urn": "urn:li:share:7496573383845875712"
+  },
+  {
+    "postedAt": "2026-08-24T14:34:05.367Z",
+    "type": "theory",
+    "theory": "Parkinson's Law",
+    "category": "Operations",
+    "text": "Parkinson's Law: The Install That Took Two Days Because You Gave It Two Days\n\nIn medical device, we say a full install runs a day and a half. Then the calendar shows two days blocked, and it takes two days. Every time.\n\nThis is Parkinson's Law. In plain terms, work expands to fill the time available for its completion.\n\nWatch where the air gets in:\n\n• A no time box install drifts. Coffee, chatter, waiting on facilities, a re-do of a step nobody timed.\n\n• A four hour training block becomes four hours of talking, not four hours of hands on the device.\n\n• An open ended parts hunt runs all afternoon. A twenty minute limit ends in escalation.\n\n• A QBR with no agenda fills with updates. One with three questions ends with decisions.\n\nThe opposite is true too. Squeeze a real eight hour install into five and you get shortcuts, skipped verification, and a callback next week.\n\nTight is not rushed.\n\nTight is honest about the work.\n\nSlack invites drift.\n\nWhat if every field task carried a stated finish time, not just a start time?\n\nOpen calendars fill themselves.\n\nClear time boxes create focus.\n\nWhere is your team giving a two hour job a full day?",
+    "hashtags": [
+      "#ParkinsonsLaw",
+      "#FieldService",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#ServiceExcellence",
+      "#OperationalExcellence",
+      "#InstallExcellence",
+      "#CustomerExperience",
+      "#TimeManagement",
+      "#ServiceLeadership",
+      "#Productivity",
+      "#CustomerRetention",
+      "#TrainingAndEnablement"
+    ],
+    "urn": "urn:li:share:7497662522238390272"
   }
 ]
