@@ -357,6 +357,13 @@ What would you automate first if you could?`,
     // Shown once, on the opening frame.
     brand: process.env.VIDEO_BRAND || "Harada Insights",
 
+    // Persistent watermark along the bottom of every frame. Empty disables it.
+    // Kept quiet on purpose: it should be legible if you look for it and
+    // ignorable if you are reading the copy.
+    watermark: process.env.VIDEO_WATERMARK || "https://www.linkedin.com/in/kenzoharada",
+    // Draw a small "in" badge before the text.
+    watermarkBadge: process.env.VIDEO_WATERMARK_BADGE !== "false",
+
     // Inter, in two cuts: the tighter Display cut for headlines and numerals,
     // the text cut for supporting copy. First path that exists wins.
     fontDisplayCandidates: [

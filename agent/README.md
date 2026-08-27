@@ -89,8 +89,8 @@ matters has to be readable on screen.
 4:5 portrait (1080x1350), which claims more feed height on a phone than a
 square. Warm near-black ground, Inter set flush left and anchored to the top of
 the frame, and a single gold accent used to pick out the words a sentence turns
-on. A progress bar runs along the bottom; the brand mark shows on the opening
-frame.
+on. A progress bar runs along the bottom, a LinkedIn watermark sits above it on
+every frame, and the brand mark shows on the opening frame.
 
 A frame is a **stack of blocks**, not one lump of centred text, so a beat can
 read as a designed layout rather than a slide:
@@ -132,6 +132,8 @@ which works out to about one video a week.
 | `VIDEO_WIDTH` / `VIDEO_HEIGHT` | `1080` / `1350` | Canvas size |
 | `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | near-black / off-white / gold | Palette, as bare hex |
 | `VIDEO_BRAND` | `Harada Insights` | Brand mark on the opening frame |
+| `VIDEO_WATERMARK` | `https://www.linkedin.com/in/kenzoharada` | Watermark on every frame; empty disables it |
+| `VIDEO_WATERMARK_BADGE` | `true` | Draw the small `in` badge before the watermark |
 | `VIDEO_FONT_DISPLAY` / `VIDEO_FONT_REGULAR` | Inter, then DejaVu | Font override |
 | `VIDEO_TOP_ANCHOR` | `0.14` | Where the content block starts down the frame |
 

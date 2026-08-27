@@ -275,7 +275,7 @@ function planFrames(frames, geo, fonts) {
 // ---------------------------------------------------------------------------
 // Pass two: build the filter chain for one frame
 // ---------------------------------------------------------------------------
-function buildFilters(frame, geo, fonts, brandFile, total) {
+function buildFilters(frame, geo, fonts, assets, total) {
   const filters = [];
 
   for (const item of frame.drawn) {
@@ -324,18 +324,51 @@ function buildFilters(frame, geo, fonts, brandFile, total) {
     }
   }
 
-  // Brand mark, on the opening frame only.
+  // Brand mark, on the opening frame only. It sits above the watermark rather
+  // than on top of it.
   if (frame.brand) {
-    const y = Math.round(geo.height * 0.9);
+    const y = Math.round(geo.height * (config.video.watermark ? 0.86 : 0.9));
     const dot = Math.round(geo.width * 0.013);
     filters.push(
       `drawbox=x=${geo.margin}:y=${y + Math.round(dot * 0.55)}:w=${dot}:h=${dot}:` +
         `color=${hex("accent")}:t=fill`,
     );
     filters.push(
-      `drawtext=fontfile=${fonts.display.file}:textfile=${brandFile}:` +
+      `drawtext=fontfile=${fonts.display.file}:textfile=${assets.brand}:` +
         `expansion=none:y_align=font:fontcolor=${hex("foreground")}:fontsize=${Math.round(geo.width * 0.029)}:` +
         `x=${geo.margin + Math.round(dot * 2.2)}:y=${y}`,
+    );
+  }
+
+  // Watermark: every frame, bottom left, clear of the progress bar. Quiet
+  // enough to ignore while reading, legible if you look for it.
+  if (assets.watermark) {
+    const size = Math.round(geo.width * 0.026);
+    const y = geo.height - Math.round(geo.height * 0.062);
+    let x = geo.margin;
+
+    if (assets.badge) {
+      const box = Math.round(size * 1.25);
+      // Centre the badge on the text's optical middle rather than its box top.
+      const boxY = y + Math.round(size * 0.5 - box * 0.5);
+      filters.push(
+        `drawbox=x=${x}:y=${boxY}:w=${box}:h=${box}:color=${hex("muted")}:t=fill`,
+      );
+      const inSize = Math.round(box * 0.62);
+      const inFont = loadFont(fonts.display.path);
+      const inX = x + Math.round((box - measureText(inFont, "in", inSize)) / 2);
+      filters.push(
+        `drawtext=fontfile=${fonts.display.file}:textfile=${assets.badge}:` +
+          `expansion=none:y_align=font:fontcolor=${hex("background")}:fontsize=${inSize}:` +
+          `x=${inX}:y=${boxY + Math.round(box * 0.5 - inSize * 0.5)}`,
+      );
+      x += box + Math.round(size * 0.55);
+    }
+
+    filters.push(
+      `drawtext=fontfile=${fonts.regular.file}:textfile=${assets.watermark}:` +
+        `expansion=none:y_align=font:fontcolor=${hex("muted")}:fontsize=${size}:` +
+        `x=${x}:y=${y}`,
     );
   }
 
@@ -401,7 +434,11 @@ export async function renderVideo(frames, outPath) {
       await writeFile(join(work, name), text);
       return name;
     };
-    const brandFile = await put(v.brand);
+    const assets = { brand: await put(v.brand) };
+    if (v.watermark) {
+      assets.watermark = await put(v.watermark);
+      if (v.watermarkBadge) assets.badge = await put("in");
+    }
 
     for (const frame of planned) {
       for (const item of frame.drawn) {
@@ -426,7 +463,7 @@ export async function renderVideo(frames, outPath) {
           "-y", "-loglevel", "error",
           "-f", "lavfi",
           "-i", `color=c=${hex("background")}:s=${geo.width}x${geo.height}:r=${geo.fps}:d=${frame.seconds}`,
-          "-vf", buildFilters(frame, geo, fonts, brandFile, total),
+          "-vf", buildFilters(frame, geo, fonts, assets, total),
           "-c:v", "libx264",
           "-pix_fmt", "yuv420p",
           "-profile:v", "high",
