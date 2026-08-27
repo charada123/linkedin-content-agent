@@ -43,13 +43,14 @@ jobs:
         with:
           node-version: 22
 
-      # Video posts are rendered locally with ffmpeg. Neither ffmpeg nor the
-      # DejaVu fonts are guaranteed to be on the runner image, so install both
-      # rather than depending on whatever happens to be preinstalled.
+      # Video posts are rendered locally with ffmpeg and set in Inter. Neither
+      # is guaranteed to be on the runner image, so install them rather than
+      # depending on whatever happens to be preinstalled. DejaVu is the
+      # fallback the renderer uses if Inter is somehow unavailable.
       - name: Install ffmpeg and fonts
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-inter fonts-dejavu-core
 
       - name: Install dependencies
         working-directory: agent

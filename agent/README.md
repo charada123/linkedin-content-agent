@@ -77,19 +77,47 @@ plain text. The written post is unchanged and still becomes the commentary; the
 video is an extra layer on top of it.
 
 ```
-post generated -> Claude distills it into on-screen beats -> ffmpeg renders
-an MP4 -> LinkedIn video upload -> post published with the video attached
+post generated -> Claude adapts it into frames -> ffmpeg renders an MP4
+-> LinkedIn video upload -> post published with the video attached
 ```
 
-The video is deliberately silent and text-driven, because LinkedIn autoplays
-muted: anything that matters has to be readable on screen. Each beat is a
-`title`, `hook`, `definition`, `bullet`, `contrast`, `closer` or `cta`, and each
-maps to its own typography in `video.mjs`. A run takes roughly 6 seconds to
-render on a GitHub runner.
+The video is silent by design, because LinkedIn autoplays muted: anything that
+matters has to be readable on screen.
 
-Cadence is counted over theory posts only, so **adding video does not disturb
-the ad rhythm**. With the defaults (an ad every 3rd post, a video every 3rd
-theory post) four weeks of weekdays look like:
+### The visual language
+
+4:5 portrait (1080x1350), which claims more feed height on a phone than a
+square. Warm near-black ground, Inter set flush left and anchored to the top of
+the frame, and a single gold accent used to pick out the words a sentence turns
+on. A progress bar runs along the bottom; the brand mark shows on the opening
+frame.
+
+A frame is a **stack of blocks**, not one lump of centred text, so a beat can
+read as a designed layout rather than a slide:
+
+| Block | What it is |
+| --- | --- |
+| `headline` | The big statement, 1 to 3 lines |
+| `body` | A quieter supporting line underneath |
+| `kicker` | A short bold punchline |
+| `stat` | A large numeral with a `label` above and a `unit` beside it |
+| `rule` | A hairline divider, used between two stats |
+
+Wrap words in `*asterisks*` to set them in gold: `bought the *same* platform`.
+A `\n` forces a line break and is honoured, which is what keeps a two-line
+parallel close on two lines. Type shrinks automatically to hold those breaks
+and to cap how deep a block can run.
+
+Accent runs are drawn as separate `drawtext` calls positioned at measured
+offsets, so text width has to be exact. `fontmetrics.mjs` reads the advance
+widths out of the font file and, because FreeType grid-fits as it rasterises,
+confirms them against ffmpeg itself in a single batched measuring pass.
+
+### Cadence
+
+Counted over theory posts only, so **adding video does not disturb the ad
+rhythm**. With the defaults (an ad every 3rd post, a video every 3rd theory
+post) four weeks of weekdays look like:
 
 ```
 text  text  ad  VIDEO  text  ad  text  VIDEO  ad  text ...
@@ -101,14 +129,17 @@ which works out to about one video a week.
 | --- | --- | --- |
 | `THEORIES_PER_VIDEO` | `3` | Every Nth theory post becomes a video |
 | `VIDEO_BASELINE_THEORIES` | `14` | Theory posts made before video existed, so the counter starts from now |
-| `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | navy / near-white / gold | Palette, as bare hex |
-| `VIDEO_WIDTH` / `VIDEO_HEIGHT` | `1080` | Canvas size (square by default) |
-| `VIDEO_FONT` / `VIDEO_FONT_BOLD` | DejaVu, then Liberation | Font override |
+| `VIDEO_WIDTH` / `VIDEO_HEIGHT` | `1080` / `1350` | Canvas size |
+| `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | near-black / off-white / gold | Palette, as bare hex |
+| `VIDEO_BRAND` | `Harada Insights` | Brand mark on the opening frame |
+| `VIDEO_FONT_DISPLAY` / `VIDEO_FONT_REGULAR` | Inter, then DejaVu | Font override |
+| `VIDEO_TOP_ANCHOR` | `0.14` | Where the content block starts down the frame |
 
-Rendering needs **ffmpeg** on `PATH` (`apt-get install ffmpeg fonts-dejavu-core`,
-or `brew install ffmpeg`). The workflow installs it on every run. Rendered files
-land in `agent/out/`, which is git-ignored: the MP4 is an artifact of the run,
-not something the repo keeps.
+Rendering needs **ffmpeg** and **Inter** (`apt-get install ffmpeg fonts-inter`,
+or `brew install ffmpeg font-inter`). The workflow installs both on every run,
+and falls back to DejaVu if Inter is missing. Rendered files land in
+`agent/out/`, which is git-ignored: the MP4 is an artifact of the run, not
+something the repo keeps.
 
 ## Scheduled auto-posting (GitHub Actions)
 

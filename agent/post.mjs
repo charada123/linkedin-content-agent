@@ -172,8 +172,16 @@ async function main() {
 
     console.log("\nStoryboard:");
     for (const [i, frame] of script.frames.entries()) {
-      const label = `${String(i + 1).padStart(2)}. [${frame.kind}]`.padEnd(18);
-      console.log(`${label}${frame.text.replace(/\n/g, " / ")}`);
+      console.log(` ${String(i + 1).padStart(2)}.`);
+      for (const b of frame.blocks) {
+        const copy =
+          b.type === "rule"
+            ? ""
+            : b.type === "stat"
+              ? `${b.label} / ${b.value} ${b.unit}`
+              : b.text.replace(/\n/g, " / ");
+        console.log(`     ${b.type.padEnd(9)}${copy}`);
+      }
     }
 
     console.log("\nRendering with ffmpeg...");

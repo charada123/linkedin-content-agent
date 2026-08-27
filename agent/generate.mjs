@@ -118,16 +118,15 @@ export async function generatePost(theory, recentPosts = []) {
 // Video scripts
 // ---------------------------------------------------------------------------
 
-// The beats an explainer video is allowed to use. These map 1:1 onto the
-// typography in video.mjs, so the model is really choosing a layout per beat.
-const FRAME_KINDS = [
-  "title",      // the concept name, on its own
-  "hook",       // the tension that makes it matter
-  "definition", // the concept in plain terms
-  "bullet",     // one concrete example from the field
-  "contrast",   // the reverse case
-  "closer",     // the two-line parallel payoff
-  "cta",        // the closing question
+// A frame is a stack of blocks rather than one lump of text, which is what lets
+// a beat read as a designed layout: a statement, a qualifier, a punchline, each
+// at its own weight. These names map 1:1 onto the typography in video.mjs.
+const BLOCK_TYPES = [
+  "headline", // the big statement, 1 to 3 lines
+  "body",     // supporting line underneath, quieter
+  "kicker",   // a short punchline, set bold and small
+  "stat",     // a large numeral with a label above and a unit beside it
+  "rule",     // a hairline divider between two stats
 ];
 
 const VIDEO_SCHEMA = {
@@ -137,21 +136,38 @@ const VIDEO_SCHEMA = {
       type: "array",
       minItems: 6,
       maxItems: 10,
-      description:
-        "The video's beats, in order. Must open with a 'title' frame and end " +
-        "with a 'cta' frame.",
+      description: "The video's beats, in order.",
       items: {
         type: "object",
         properties: {
-          kind: { type: "string", enum: FRAME_KINDS },
-          text: {
-            type: "string",
-            description:
-              "The words on screen for this beat. Plain text. A single '\\n' " +
-              "may be used in a 'closer' to split the two parallel lines.",
+          blocks: {
+            type: "array",
+            minItems: 1,
+            maxItems: 5,
+            items: {
+              type: "object",
+              properties: {
+                type: { type: "string", enum: BLOCK_TYPES },
+                text: {
+                  type: "string",
+                  description:
+                    "For headline/body/kicker. Wrap words in *asterisks* to set " +
+                    "them in the accent colour. A '\\n' forces a line break.",
+                },
+                label: { type: "string", description: "stat only: the small line above the numeral." },
+                value: { type: "string", description: "stat only: the numeral itself, e.g. '4'." },
+                unit: { type: "string", description: "stat only: the words beside the numeral." },
+                accent: {
+                  type: "boolean",
+                  description: "stat only: true makes the numeral gold, false greys it out.",
+                },
+              },
+              required: ["type"],
+              additionalProperties: false,
+            },
           },
         },
-        required: ["kind", "text"],
+        required: ["blocks"],
         additionalProperties: false,
       },
     },
@@ -167,23 +183,40 @@ function buildVideoPrompt(theory, postText) {
     "",
     "The video autoplays with the sound off, so every word has to be ON SCREEN",
     "and readable at a glance while someone scrolls. This is not a transcript:",
-    "compress the post down to its teaching spine and cut everything else.",
+    "compress the post to its teaching spine and cut everything else.",
     "",
-    "Rules:",
-    `- Open with a "title" frame containing ONLY the concept name: ${theory.name}.`,
-    '- Follow with a "hook" that states the tension in one short sentence.',
-    '- Give one "definition" frame that defines the concept in plain terms.',
-    '- Then 2 to 4 "bullet" frames, each ONE concrete medical device /',
-    "  aesthetics field example. One idea per frame, never a list.",
-    '- Optionally one "contrast" frame for the reverse case.',
-    '- A "closer" frame with the two-line parallel payoff, the two lines',
-    "  separated by a single newline.",
-    '- End with a "cta" frame: the engagement question.',
+    "Each frame is a stack of blocks:",
+    '  headline  the big statement. 1 to 3 lines, under 12 words.',
+    '  body      a quieter supporting line under the headline.',
+    '  kicker    a short bold punchline, under 6 words.',
+    '  stat      a big numeral: needs label, value, unit, and accent.',
+    '  rule      a hairline divider, only ever between two stats.',
     "",
-    "Length is the hard part. Aim for 8 words per frame and never exceed about",
-    "16, because long frames shrink the type until it is unreadable on a phone.",
-    "Short, punchy, declarative lines. No hashtags, no markdown, no bullet",
-    "characters (the video draws its own), no emoji, no em dashes or en dashes.",
+    "Most frames are a headline alone, or a headline plus a body. Use a kicker",
+    "only when a beat genuinely lands on a punchline.",
+    "",
+    "Put *asterisks* around the one or two words a sentence turns on. They render",
+    "in gold. Do not mark up more than a few words per frame, and never a whole",
+    "line, or the emphasis stops meaning anything.",
+    "",
+    "Structure the video like this:",
+    `  1. Open on a headline naming the concept: ${theory.name}.`,
+    "  2. A frame that states the tension in the field.",
+    "  3. A frame defining the concept in plain terms.",
+    "  4. Two or three frames, each ONE concrete medical device / aesthetics",
+    "     example. One idea per frame, never a list.",
+    "  5. Optionally one frame for the reverse case.",
+    "  6. A frame with the two-line parallel close, as a headline using \\n.",
+    "  7. A final frame with the engagement question.",
+    "",
+    "If, and only if, the post contains a genuine contrast of two numbers, you",
+    "may use one frame of two stat blocks separated by a rule, with the first",
+    "stat accent true and the second accent false. Never invent numbers to fill",
+    "this. Most theories have none, and that is fine: skip it.",
+    "",
+    "Keep every line short. A headline over about 12 words shrinks until it is",
+    "unreadable on a phone. No hashtags, no markdown besides the asterisks, no",
+    "bullet characters, no emoji, no em dashes or en dashes.",
     "",
     "The post to adapt:",
     "",
@@ -211,9 +244,29 @@ export async function generateVideoScript(theory, postText) {
   if (!block) throw new Error("No video script returned from Claude.");
 
   const parsed = JSON.parse(block.text);
+
+  // Strip dashes from every piece of copy, and drop blocks the model left empty
+  // (a headline with no text would render as a silent gap).
+  const clean = (t) => stripDashes(String(t || "")).trim();
   const frames = (parsed.frames || [])
-    .map((f) => ({ kind: f.kind, text: stripDashes(f.text || "").trim() }))
-    .filter((f) => f.text);
+    .map((f) => ({
+      blocks: (f.blocks || [])
+        .map((b) => {
+          if (b.type === "rule") return { type: "rule" };
+          if (b.type === "stat") {
+            return {
+              type: "stat",
+              label: clean(b.label),
+              value: clean(b.value),
+              unit: clean(b.unit),
+              accent: b.accent !== false,
+            };
+          }
+          return { type: b.type, text: clean(b.text) };
+        })
+        .filter((b) => b.type === "rule" || b.text || b.value),
+    }))
+    .filter((f) => f.blocks.length);
 
   if (!frames.length) throw new Error("Video script came back empty.");
 

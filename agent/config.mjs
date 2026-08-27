@@ -335,46 +335,50 @@ What would you automate first if you could?`,
   videoBaselineTheories: Number(process.env.VIDEO_BASELINE_THEORIES || 14),
 
   // How the explainer video is rendered. The video is silent by design:
-  // LinkedIn autoplays muted, so the teaching has to live on screen. Colours
-  // are plain hex, no leading '#', because that is what ffmpeg wants.
+  // LinkedIn autoplays muted, so the teaching has to live on screen. Colours are
+  // plain hex without a leading '#', because that is what ffmpeg wants.
   video: {
+    // 4:5 portrait. It claims noticeably more feed height than a square on a
+    // phone, which is where nearly all of this gets watched.
     width: Number(process.env.VIDEO_WIDTH || 1080),
-    height: Number(process.env.VIDEO_HEIGHT || 1080),
+    height: Number(process.env.VIDEO_HEIGHT || 1350),
     fps: Number(process.env.VIDEO_FPS || 30),
 
-    // Brand palette: deep navy ground, near-white body copy, warm gold accent.
-    background: process.env.VIDEO_BG || "0B2239",
-    foreground: process.env.VIDEO_FG || "F5F7FA",
-    accent: process.env.VIDEO_ACCENT || "E8B24A",
-    muted: process.env.VIDEO_MUTED || "9FB3C8",
+    // Warm near-black ground, warm off-white copy, one gold accent. `muted` is
+    // for supporting lines, `dim` for a deliberately de-emphasised stat, `rule`
+    // for dividers.
+    background: process.env.VIDEO_BG || "121110",
+    foreground: process.env.VIDEO_FG || "F7F4EE",
+    accent: process.env.VIDEO_ACCENT || "E8B44A",
+    muted: process.env.VIDEO_MUTED || "8B857A",
+    dim: process.env.VIDEO_DIM || "A39C92",
+    rule: process.env.VIDEO_RULE || "302B26",
 
-    // Fonts. The first path that exists on disk wins, so this works on the
-    // GitHub runner (DejaVu + Liberation are preinstalled) and on a Mac.
-    fontCandidates: [
-      process.env.VIDEO_FONT,
-      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-      "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-      "/System/Library/Fonts/Supplemental/Arial.ttf",
-    ],
-    fontBoldCandidates: [
-      process.env.VIDEO_FONT_BOLD,
+    // Shown once, on the opening frame.
+    brand: process.env.VIDEO_BRAND || "Harada Insights",
+
+    // Inter, in two cuts: the tighter Display cut for headlines and numerals,
+    // the text cut for supporting copy. First path that exists wins.
+    fontDisplayCandidates: [
+      process.env.VIDEO_FONT_DISPLAY,
+      "/usr/share/fonts/opentype/inter/InterDisplay-Bold.otf",
+      "/usr/share/fonts/truetype/inter/InterDisplay-Bold.ttf",
       "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
-      "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
-      "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ],
+    fontRegularCandidates: [
+      process.env.VIDEO_FONT_REGULAR,
+      "/usr/share/fonts/opentype/inter/Inter-Regular.otf",
+      "/usr/share/fonts/truetype/inter/Inter-Regular.ttf",
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
     ],
 
-    // Average glyph width as a fraction of font size, used to wrap text without
-    // a font-metrics dependency. Measured from rendered pixels; sits just above
-    // the widest sample so lines never overflow the safe area.
-    glyphRatioRegular: Number(process.env.VIDEO_GLYPH_RATIO || 0.55),
-    glyphRatioBold: Number(process.env.VIDEO_GLYPH_RATIO_BOLD || 0.62),
+    // Copy is set flush left off this margin and anchored near the top of the
+    // frame, so beats of different lengths all start on the same line.
+    margin: Number(process.env.VIDEO_MARGIN || 84),
+    topAnchor: Number(process.env.VIDEO_TOP_ANCHOR || 0.14),
+    fadeSeconds: Number(process.env.VIDEO_FADE || 0.3),
 
-    // Layout + timing.
-    margin: Number(process.env.VIDEO_MARGIN || 90),
-    fadeSeconds: Number(process.env.VIDEO_FADE || 0.4),
-
-    // Where rendered files land. Git-ignored: the MP4 is an artifact of the
-    // run, not something we keep in the repo.
+    // Rendered files land here. Git-ignored: the MP4 is an artifact of the run.
     outDir: process.env.VIDEO_OUT_DIR || "out",
   },
 };
