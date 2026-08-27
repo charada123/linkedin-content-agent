@@ -27,7 +27,9 @@ const STYLES = {
   definition: { scale: 0.062, bold: true, color: "foreground", align: "center" },
   bullet: { scale: 0.054, bold: false, color: "foreground", align: "left", marker: true },
   contrast: { scale: 0.056, bold: false, color: "muted", align: "center" },
-  closer: { scale: 0.068, bold: true, color: "accent", align: "center" },
+  // keepLines: the two-line parallel close is the payoff of the post format, so
+  // shrink the type until each line holds rather than letting it wrap into four.
+  closer: { scale: 0.068, bold: true, color: "accent", align: "center", keepLines: true },
   cta: { scale: 0.052, bold: false, color: "muted", align: "center" },
 };
 
@@ -72,11 +74,17 @@ function fitText(text, style, box) {
   const minSize = Math.round(config.video.width * 0.032);
   const ratio = style.bold ? config.video.glyphRatioBold : config.video.glyphRatioRegular;
 
+  // For a keepLines beat, the author's own line breaks carry meaning, so the
+  // target is one rendered line per written line.
+  const written = String(text).split("\n").filter((p) => p.trim()).length;
+
   for (;;) {
     const lines = wrap(text, fontSize, box.width, ratio);
     const lineHeight = Math.round(fontSize * 1.42);
     const blockHeight = lines.length * lineHeight;
-    if (blockHeight <= box.height || fontSize <= minSize) {
+    const fitsBox = blockHeight <= box.height;
+    const holdsLines = !style.keepLines || lines.length <= written;
+    if ((fitsBox && holdsLines) || fontSize <= minSize) {
       return { fontSize, lines, lineHeight, blockHeight };
     }
     fontSize -= 2;
