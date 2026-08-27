@@ -37,8 +37,11 @@ export async function resolveAuthorUrn(token) {
   return `urn:li:person:${sub}`;
 }
 
-// Publish a text post. Returns the created post's URN.
-export async function publishPost(token, authorUrn, commentary) {
+// Publish a post. Returns the created post's URN.
+//
+// `media` is optional: pass { id, title } to attach an already-uploaded video
+// (see uploadVideo below). Omit it for a plain text post.
+export async function publishPost(token, authorUrn, commentary, media = null) {
   const payload = {
     author: authorUrn,
     commentary,
@@ -51,6 +54,10 @@ export async function publishPost(token, authorUrn, commentary) {
     lifecycleState: "PUBLISHED",
     isReshareDisabledByAuthor: false,
   };
+
+  if (media) {
+    payload.content = { media: { id: media.id, title: media.title } };
+  }
 
   const res = await fetch(`${API_BASE}/rest/posts`, {
     method: "POST",
@@ -106,4 +113,156 @@ export async function commentOnPost(token, authorUrn, postUrn, text) {
     throw new Error(`LinkedIn comment failed (${res.status}): ${body}`);
   }
   return true;
+}
+
+// ---------------------------------------------------------------------------
+// Video upload
+// ---------------------------------------------------------------------------
+//
+// Video is a four-step dance, quite unlike a text post:
+//   1. initializeUpload  -> LinkedIn hands back a video URN and one upload URL
+//                           per chunk of the file.
+//   2. PUT each chunk    -> every response carries an ETag we have to keep.
+//   3. finalizeUpload    -> hand back the ETags, in order, to assemble the file.
+//   4. poll the video    -> LinkedIn transcodes asynchronously; the post will be
+//                           rejected if we attach the video before it is ready.
+// Only then can the video URN be attached to a post.
+
+const UPLOAD_STATUS_POLL_MS = 5000;
+const UPLOAD_STATUS_MAX_ATTEMPTS = 60; // ~5 minutes
+
+async function initializeUpload(token, ownerUrn, fileSizeBytes) {
+  const res = await fetch(`${API_BASE}/rest/videos?action=initializeUpload`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      initializeUploadRequest: {
+        owner: ownerUrn,
+        fileSizeBytes,
+        uploadCaptions: false,
+        uploadThumbnail: false,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`LinkedIn initializeUpload failed (${res.status}): ${body}`);
+  }
+
+  const { value } = await res.json();
+  if (!value?.video || !value?.uploadInstructions?.length) {
+    throw new Error(
+      `LinkedIn initializeUpload returned no upload instructions: ${JSON.stringify(value)}`,
+    );
+  }
+  return value;
+}
+
+// Upload one byte range and return its ETag. LinkedIn rejects the finalize call
+// if any part id is missing or out of order, so this throws loudly rather than
+// returning something empty.
+async function uploadPart(token, instruction, buffer, index) {
+  const chunk = buffer.subarray(instruction.firstByte, instruction.lastByte + 1);
+
+  const res = await fetch(instruction.uploadUrl, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/octet-stream",
+    },
+    body: chunk,
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`LinkedIn chunk ${index} upload failed (${res.status}): ${body}`);
+  }
+
+  const etag = res.headers.get("etag");
+  if (!etag) {
+    throw new Error(
+      `LinkedIn chunk ${index} upload returned no ETag header, so the upload ` +
+        "cannot be finalized.",
+    );
+  }
+  // Some edges quote the ETag; LinkedIn wants the bare value back.
+  return etag.replace(/^"|"$/g, "");
+}
+
+async function finalizeUpload(token, videoUrn, uploadToken, uploadedPartIds) {
+  const res = await fetch(`${API_BASE}/rest/videos?action=finalizeUpload`, {
+    method: "POST",
+    headers: authHeaders(token),
+    body: JSON.stringify({
+      finalizeUploadRequest: {
+        video: videoUrn,
+        uploadToken: uploadToken || "",
+        uploadedPartIds,
+      },
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`LinkedIn finalizeUpload failed (${res.status}): ${body}`);
+  }
+}
+
+// Poll until LinkedIn has finished transcoding. Attaching a video that is still
+// PROCESSING produces a post with a broken player, so this is not optional.
+async function waitForVideo(token, videoUrn, onTick = () => {}) {
+  for (let attempt = 1; attempt <= UPLOAD_STATUS_MAX_ATTEMPTS; attempt++) {
+    const res = await fetch(
+      `${API_BASE}/rest/videos/${encodeURIComponent(videoUrn)}`,
+      { headers: authHeaders(token) },
+    );
+
+    if (res.ok) {
+      const { status } = await res.json();
+      if (status === "AVAILABLE") return status;
+      if (status === "PROCESSING_FAILED") {
+        throw new Error(`LinkedIn failed to process the video (${videoUrn}).`);
+      }
+      onTick(status, attempt);
+    }
+
+    await new Promise((r) => setTimeout(r, UPLOAD_STATUS_POLL_MS));
+  }
+
+  throw new Error(
+    `Video ${videoUrn} was still not AVAILABLE after ` +
+      `${(UPLOAD_STATUS_POLL_MS * UPLOAD_STATUS_MAX_ATTEMPTS) / 1000}s.`,
+  );
+}
+
+/**
+ * Upload a local video file and return its URN, ready to attach to a post.
+ *
+ * @param {string} token       LinkedIn access token
+ * @param {string} ownerUrn    the posting identity (same URN used as author)
+ * @param {Buffer} buffer      the video file's bytes
+ * @param {(msg: string) => void} log  progress reporter
+ */
+export async function uploadVideo(token, ownerUrn, buffer, log = () => {}) {
+  const init = await initializeUpload(token, ownerUrn, buffer.length);
+  const parts = init.uploadInstructions;
+  log(`Uploading ${(buffer.length / 1024 / 1024).toFixed(2)} MB in ${parts.length} part(s)...`);
+
+  // Sequential on purpose: the part ids must line up with the instruction order,
+  // and these files are small enough that parallelism buys nothing.
+  const uploadedPartIds = [];
+  for (const [index, instruction] of parts.entries()) {
+    uploadedPartIds.push(await uploadPart(token, instruction, buffer, index));
+  }
+
+  await finalizeUpload(token, init.video, init.uploadToken, uploadedPartIds);
+  log("Upload finalized. Waiting for LinkedIn to process the video...");
+
+  await waitForVideo(token, init.video, (status, attempt) => {
+    if (attempt === 1 || attempt % 6 === 0) log(`  status: ${status}`);
+  });
+  log("Video is AVAILABLE.");
+
+  return init.video;
 }

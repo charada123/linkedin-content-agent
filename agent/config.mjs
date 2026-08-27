@@ -324,4 +324,57 @@ What would you automate first if you could?`,
 
   // Post visibility: PUBLIC or CONNECTIONS.
   visibility: process.env.LINKEDIN_VISIBILITY || "PUBLIC",
+
+  // Video cadence: every Nth theory post goes out as a rendered explainer
+  // video instead of plain text (3 => the 3rd, 6th, 9th ... theory post).
+  // Ads are untouched, so the ad rhythm stays exactly as it was.
+  theoriesPerVideo: Number(process.env.THEORIES_PER_VIDEO || 3),
+  // Theory posts already made before video was introduced. The counter starts
+  // from here so the first video lands `theoriesPerVideo` posts from now,
+  // rather than retroactively counting the whole back catalogue.
+  videoBaselineTheories: Number(process.env.VIDEO_BASELINE_THEORIES || 14),
+
+  // How the explainer video is rendered. The video is silent by design:
+  // LinkedIn autoplays muted, so the teaching has to live on screen. Colours
+  // are plain hex, no leading '#', because that is what ffmpeg wants.
+  video: {
+    width: Number(process.env.VIDEO_WIDTH || 1080),
+    height: Number(process.env.VIDEO_HEIGHT || 1080),
+    fps: Number(process.env.VIDEO_FPS || 30),
+
+    // Brand palette: deep navy ground, near-white body copy, warm gold accent.
+    background: process.env.VIDEO_BG || "0B2239",
+    foreground: process.env.VIDEO_FG || "F5F7FA",
+    accent: process.env.VIDEO_ACCENT || "E8B24A",
+    muted: process.env.VIDEO_MUTED || "9FB3C8",
+
+    // Fonts. The first path that exists on disk wins, so this works on the
+    // GitHub runner (DejaVu + Liberation are preinstalled) and on a Mac.
+    fontCandidates: [
+      process.env.VIDEO_FONT,
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+      "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
+      "/System/Library/Fonts/Supplemental/Arial.ttf",
+    ],
+    fontBoldCandidates: [
+      process.env.VIDEO_FONT_BOLD,
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+      "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+      "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
+    ],
+
+    // Average glyph width as a fraction of font size, used to wrap text without
+    // a font-metrics dependency. Measured from rendered pixels; sits just above
+    // the widest sample so lines never overflow the safe area.
+    glyphRatioRegular: Number(process.env.VIDEO_GLYPH_RATIO || 0.55),
+    glyphRatioBold: Number(process.env.VIDEO_GLYPH_RATIO_BOLD || 0.62),
+
+    // Layout + timing.
+    margin: Number(process.env.VIDEO_MARGIN || 90),
+    fadeSeconds: Number(process.env.VIDEO_FADE || 0.4),
+
+    // Where rendered files land. Git-ignored: the MP4 is an artifact of the
+    // run, not something we keep in the repo.
+    outDir: process.env.VIDEO_OUT_DIR || "out",
+  },
 };

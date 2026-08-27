@@ -23,6 +23,10 @@ on:
         description: "Publish an ad now (ignores cadence; not logged to history)"
         type: boolean
         default: false
+      force_video:
+        description: "Make this run an explainer video (ignores the video cadence)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write # to commit the updated post history
@@ -39,6 +43,14 @@ jobs:
         with:
           node-version: 22
 
+      # Video posts are rendered locally with ffmpeg. Neither ffmpeg nor the
+      # DejaVu fonts are guaranteed to be on the runner image, so install both
+      # rather than depending on whatever happens to be preinstalled.
+      - name: Install ffmpeg and fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg fonts-dejavu-core
+
       - name: Install dependencies
         working-directory: agent
         run: npm install
@@ -52,15 +64,21 @@ jobs:
           DRY_RUN: ${{ inputs.dry_run }}
           DELETE_URN: ${{ inputs.delete_urn }}
           FORCE_AD: ${{ inputs.force_ad }}
+          FORCE_VIDEO: ${{ inputs.force_video }}
         run: |
+          # Format overrides are independent of whether we publish, so that
+          # "dry run" can preview an ad or a video without posting it. Dry run
+          # always wins: no combination of inputs publishes when it is ticked.
+          FLAGS=""
+          if [ "$FORCE_AD" = "true" ]; then FLAGS="--ad"; fi
+          if [ "$FORCE_VIDEO" = "true" ]; then FLAGS="--video"; fi
+
           if [ -n "$DELETE_URN" ]; then
             node post.mjs --delete "$DELETE_URN"
-          elif [ "$FORCE_AD" = "true" ]; then
-            node post.mjs --ad --post
           elif [ "$DRY_RUN" = "true" ]; then
-            node post.mjs
+            node post.mjs $FLAGS
           else
-            node post.mjs --post
+            node post.mjs $FLAGS --post
           fi
 
       - name: Commit updated post history

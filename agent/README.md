@@ -17,9 +17,10 @@ motivating takeaway.
 ## How it works
 
 ```
-config.mjs     the theory library, voice, length, LinkedIn settings
-generate.mjs   asks Claude for one motivational post about a theory
-linkedin.mjs   publishes to https://api.linkedin.com/rest/posts
+config.mjs     the theory library, voice, length, video + LinkedIn settings
+generate.mjs   asks Claude for one motivational post, and for video scripts
+video.mjs      renders a video script into an MP4 with ffmpeg
+linkedin.mjs   publishes to https://api.linkedin.com/rest/posts (text or video)
 history.mjs    logs every post to data/history.json (audit + dedupe context)
 post.mjs       ties it together: pick theory -> generate -> publish -> log
 ```
@@ -55,12 +56,59 @@ node post.mjs --post
 # Force a specific theory (case-insensitive substring match)
 node post.mjs --theory maslow
 node post.mjs --theory "blue ocean" --post
+
+# Force this run to be an explainer video, or force plain text
+node post.mjs --video
+node post.mjs --no-video --post
 ```
+
+Note that `--video` on its own still renders the MP4 (into `agent/out/`) without
+publishing, so you can watch it before deciding.
 
 The theory library (70 theories across Management, Motivation, Leadership,
 Strategy, Marketing, Organization, Entrepreneurship, and Finance) lives in the
 `theories` array in `config.mjs` — add, remove, or reorder them there, or edit
 the `voice` string to change how the posts sound.
+
+## Explainer videos
+
+Every third theory post goes out as a short silent explainer video instead of
+plain text. The written post is unchanged and still becomes the commentary; the
+video is an extra layer on top of it.
+
+```
+post generated -> Claude distills it into on-screen beats -> ffmpeg renders
+an MP4 -> LinkedIn video upload -> post published with the video attached
+```
+
+The video is deliberately silent and text-driven, because LinkedIn autoplays
+muted: anything that matters has to be readable on screen. Each beat is a
+`title`, `hook`, `definition`, `bullet`, `contrast`, `closer` or `cta`, and each
+maps to its own typography in `video.mjs`. A run takes roughly 6 seconds to
+render on a GitHub runner.
+
+Cadence is counted over theory posts only, so **adding video does not disturb
+the ad rhythm**. With the defaults (an ad every 3rd post, a video every 3rd
+theory post) four weeks of weekdays look like:
+
+```
+text  text  ad  VIDEO  text  ad  text  VIDEO  ad  text ...
+```
+
+which works out to about one video a week.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `THEORIES_PER_VIDEO` | `3` | Every Nth theory post becomes a video |
+| `VIDEO_BASELINE_THEORIES` | `14` | Theory posts made before video existed, so the counter starts from now |
+| `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | navy / near-white / gold | Palette, as bare hex |
+| `VIDEO_WIDTH` / `VIDEO_HEIGHT` | `1080` | Canvas size (square by default) |
+| `VIDEO_FONT` / `VIDEO_FONT_BOLD` | DejaVu, then Liberation | Font override |
+
+Rendering needs **ffmpeg** on `PATH` (`apt-get install ffmpeg fonts-dejavu-core`,
+or `brew install ffmpeg`). The workflow installs it on every run. Rendered files
+land in `agent/out/`, which is git-ignored: the MP4 is an artifact of the run,
+not something the repo keeps.
 
 ## Scheduled auto-posting (GitHub Actions)
 
@@ -73,6 +121,10 @@ the `voice` string to change how the posts sound.
 2. Adjust the `cron:` line in the workflow to your preferred cadence.
 3. Trigger a manual run from the **Actions** tab (with the _dry run_ box ticked
    the first time) to confirm it works.
+
+The manual run also takes a _force video_ box, which makes that run an explainer
+video regardless of where the cadence has got to. Ticking _dry run_ always wins,
+so you can preview an ad or a video without publishing either.
 
 The workflow commits the updated `data/history.json` after each post so rotation
 and dedupe persist across runs.
@@ -93,5 +145,9 @@ that cadence, or use a LinkedIn refresh token to mint new ones.
 
 - Posts are published as `PUBLIC` by default — change `LINKEDIN_VISIBILITY` to
   `CONNECTIONS` to restrict.
+- Video posts upload in chunks and then wait for LinkedIn to finish transcoding
+  before publishing, so a video run takes a couple of minutes longer than a text
+  one. Attaching a video before it reports `AVAILABLE` produces a broken player,
+  so the wait is not optional.
 - Nothing is published without the `--post` flag, so you can always preview
   first.

@@ -4,22 +4,29 @@
 //   node post.mjs                    # dry run — generate and print, do NOT publish
 //   node post.mjs --post             # generate AND publish to LinkedIn
 //   node post.mjs --theory maslow    # force a theory (substring match)
+//   node post.mjs --video            # force this post to be an explainer video
+//   node post.mjs --no-video         # force plain text even if a video is due
 //
 // The dry-run default is a safety net: you never accidentally publish while
 // testing. The scheduled GitHub Action passes --post explicitly.
 
+import { readFile } from "node:fs/promises";
+
 import { config } from "./config.mjs";
-import { generatePost } from "./generate.mjs";
-import { resolveAuthorUrn, publishPost, deletePost } from "./linkedin.mjs";
+import { generatePost, generateVideoScript } from "./generate.mjs";
+import { resolveAuthorUrn, publishPost, deletePost, uploadVideo } from "./linkedin.mjs";
+import { renderVideo, defaultOutPath } from "./video.mjs";
 import { loadHistory, appendHistory, recent } from "./history.mjs";
 
 function parseArgs(argv) {
-  const args = { post: false, theory: null, delete: null, ad: false };
+  const args = { post: false, theory: null, delete: null, ad: false, video: false, noVideo: false };
   for (let i = 2; i < argv.length; i++) {
     if (argv[i] === "--post") args.post = true;
     else if (argv[i] === "--theory") args.theory = argv[++i];
     else if (argv[i] === "--delete") args.delete = argv[++i];
     else if (argv[i] === "--ad") args.ad = true;
+    else if (argv[i] === "--video") args.video = true;
+    else if (argv[i] === "--no-video") args.noVideo = true;
   }
   return args;
 }
@@ -50,6 +57,20 @@ function chooseAd(history) {
       : null;
   const commentary = [ad.text, link, tags].filter(Boolean).join("\n\n");
   return { ad, commentary };
+}
+
+// Should this theory post be delivered as a video rather than plain text? Every
+// `theoriesPerVideo`-th theory post becomes a video. Counting only theory-shaped
+// posts (text or video) keeps this independent of the ad rhythm, so adding video
+// does not shift when ads land.
+function shouldPostVideo(history) {
+  const delivered = history.filter(
+    (h) => h.type === "theory" || h.type === "video",
+  ).length;
+  const sinceBaseline = delivered - config.videoBaselineTheories;
+  if (sinceBaseline < 0) return false;
+  // sinceBaseline counts posts already made, so this run is the next one.
+  return (sinceBaseline + 1) % config.theoriesPerVideo === 0;
 }
 
 // Choose the next theory. In "rotate" mode we look at the last posted theory
@@ -126,8 +147,10 @@ async function main() {
   }
 
   const theory = chooseTheory(history, args.theory);
+  const asVideo = args.video || (!args.noVideo && shouldPostVideo(history));
 
   console.log(`Theory: ${theory.name} (${theory.category})`);
+  console.log(`Format: ${asVideo ? "explainer video" : "text"}`);
   console.log("Generating post with Claude...\n");
 
   const post = await generatePost(theory, recent(history, config.historyContext));
@@ -139,6 +162,29 @@ async function main() {
     `\nTokens: ${post.usage.input_tokens} in / ${post.usage.output_tokens} out`,
   );
 
+  // Video posts carry the same written post as their commentary, plus a
+  // rendered explainer of the same theory. The video is built even on a dry run
+  // so you can watch it before committing to publish.
+  let video = null;
+  if (asVideo) {
+    console.log("\nAdapting it into a video script...");
+    const script = await generateVideoScript(theory, post.text);
+
+    console.log("\nStoryboard:");
+    for (const [i, frame] of script.frames.entries()) {
+      const label = `${String(i + 1).padStart(2)}. [${frame.kind}]`.padEnd(18);
+      console.log(`${label}${frame.text.replace(/\n/g, " / ")}`);
+    }
+
+    console.log("\nRendering with ffmpeg...");
+    const rendered = await renderVideo(script.frames, defaultOutPath(theory.name));
+    console.log(
+      `Rendered ${rendered.path} ` +
+        `(${rendered.frames} frames, ${rendered.seconds.toFixed(1)}s)`,
+    );
+    video = { ...rendered, frames: script.frames };
+  }
+
   if (!args.post) {
     console.log("\nDry run — not published. Re-run with --post to publish.");
     return;
@@ -148,18 +194,36 @@ async function main() {
   if (!token) throw new Error("LINKEDIN_ACCESS_TOKEN is not set.");
 
   const authorUrn = await resolveAuthorUrn(token);
+
+  // A video has to be uploaded and fully processed before it can be attached.
+  let media = null;
+  if (video) {
+    const bytes = await readFile(video.path);
+    const videoUrn = await uploadVideo(token, authorUrn, bytes, (m) =>
+      console.log(m),
+    );
+    media = { id: videoUrn, title: theory.name };
+  }
+
   console.log(`\nPublishing as ${authorUrn}...`);
-  const postUrn = await publishPost(token, authorUrn, post.commentary);
+  const postUrn = await publishPost(token, authorUrn, post.commentary, media);
   console.log(`Published: ${postUrn}`);
 
   await appendHistory({
     postedAt: new Date().toISOString(),
-    type: "theory",
+    type: asVideo ? "video" : "theory",
     theory: theory.name,
     category: theory.category,
     text: post.text,
     hashtags: post.hashtags,
     urn: postUrn,
+    ...(media
+      ? {
+          videoUrn: media.id,
+          videoSeconds: Number(video.seconds.toFixed(1)),
+          videoFrames: video.frames.length,
+        }
+      : {}),
   });
   console.log("Logged to data/history.json.");
 }
