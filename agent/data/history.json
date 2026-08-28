@@ -426,5 +426,28 @@
       "#Leadership"
     ],
     "urn": "urn:li:share:7498883427090186240"
+  },
+  {
+    "postedAt": "2026-08-28T23:20:42.480Z",
+    "type": "theory",
+    "theory": "Chesterton's Fence",
+    "category": "Leadership and Process",
+    "text": "Chesterton's Fence: The Annoying Step Might Be Holding the Roof Up\n\nIn field service, a new leader looks at the install checklist and finds a step nobody can justify. A second signature. A redundant power reading. A call to the practice the day before a visit that already has a confirmed slot. So they cut it, and the process gets faster for about a month.\n\nThis is Chesterton's Fence. In plain terms, before you remove something that looks pointless, find out why someone put it there.\n\nAsk before you cut:\n\n• That redundant voltage check? It exists because a clinic in year two lost a handpiece to bad building power.\n\n• That pre-visit call? It exists because techs kept arriving to locked treatment rooms.\n\n• That second signature? It exists because a device shipped without the applicator.\n\n• That extra training hour? It exists because week-three callbacks doubled without it.\n\nThe opposite is also a trap. Some fences guard nothing, and keeping them out of fear is its own cost.\n\nSpeed without history creates repeat failures.\n\nHistory without review creates bloat.\n\nAsk why, then decide.\n\nWhat if every process you inherited came with the story behind it?\n\nCuriosity protects the customer.\n\nCourage improves the process.\n\nWhich step does your team hate most, and does anyone know why it exists?",
+    "hashtags": [
+      "#ChestertonsFence",
+      "#MedicalDevice",
+      "#MedicalAesthetics",
+      "#FieldService",
+      "#ServiceExcellence",
+      "#OperationalExcellence",
+      "#ProcessImprovement",
+      "#Leadership",
+      "#CustomerExperience",
+      "#Retention",
+      "#ContinuousImprovement",
+      "#DeviceInstalls",
+      "#TeamCulture"
+    ],
+    "urn": "urn:li:share:7499244601573056512"
   }
 ]
