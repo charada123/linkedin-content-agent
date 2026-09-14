@@ -134,16 +134,16 @@ const VIDEO_SCHEMA = {
   properties: {
     frames: {
       type: "array",
-      minItems: 6,
-      maxItems: 10,
-      description: "The video's beats, in order.",
+      // No minItems/maxItems here: structured outputs rejects array count
+      // constraints other than 0 or 1, so the count is stated in prose and
+      // enforced client-side below.
+      description: "The video's beats, in order. Six to ten of them.",
       items: {
         type: "object",
         properties: {
           blocks: {
             type: "array",
-            minItems: 1,
-            maxItems: 5,
+            description: "One to five blocks, stacked top to bottom.",
             items: {
               type: "object",
               properties: {
@@ -268,7 +268,13 @@ export async function generateVideoScript(theory, postText) {
     }))
     .filter((f) => f.blocks.length);
 
-  if (!frames.length) throw new Error("Video script came back empty.");
+  // The schema cannot express these bounds, so check them here. Throwing is
+  // safe: post.mjs treats a failed video step as a reason to publish the plain
+  // text post, not a reason to publish nothing.
+  if (frames.length < 4) {
+    throw new Error(`Video script came back with only ${frames.length} frame(s).`);
+  }
+  if (frames.length > 12) frames.length = 12;
 
   return { frames, usage: response.usage };
 }

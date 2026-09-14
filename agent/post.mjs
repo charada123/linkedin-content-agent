@@ -165,32 +165,45 @@ async function main() {
   // Video posts carry the same written post as their commentary, plus a
   // rendered explainer of the same theory. The video is built even on a dry run
   // so you can watch it before committing to publish.
+  //
+  // Every failure here is caught. The post itself is already written, and a
+  // video that cannot be built is no reason to publish nothing: we fall back to
+  // the plain text post. That also keeps the cadence moving. History is what
+  // decides whether a run is a video, so a run that dies before logging leaves
+  // the next run on the same slot, and a persistent video fault would wedge the
+  // schedule permanently rather than skipping a single day.
   let video = null;
   if (asVideo) {
-    console.log("\nAdapting it into a video script...");
-    const script = await generateVideoScript(theory, post.text);
+    try {
+      console.log("\nAdapting it into a video script...");
+      const script = await generateVideoScript(theory, post.text);
 
-    console.log("\nStoryboard:");
-    for (const [i, frame] of script.frames.entries()) {
-      console.log(` ${String(i + 1).padStart(2)}.`);
-      for (const b of frame.blocks) {
-        const copy =
-          b.type === "rule"
-            ? ""
-            : b.type === "stat"
-              ? `${b.label} / ${b.value} ${b.unit}`
-              : b.text.replace(/\n/g, " / ");
-        console.log(`     ${b.type.padEnd(9)}${copy}`);
+      console.log("\nStoryboard:");
+      for (const [i, frame] of script.frames.entries()) {
+        console.log(` ${String(i + 1).padStart(2)}.`);
+        for (const b of frame.blocks) {
+          const copy =
+            b.type === "rule"
+              ? ""
+              : b.type === "stat"
+                ? `${b.label} / ${b.value} ${b.unit}`
+                : b.text.replace(/\n/g, " / ");
+          console.log(`     ${b.type.padEnd(9)}${copy}`);
+        }
       }
-    }
 
-    console.log("\nRendering with ffmpeg...");
-    const rendered = await renderVideo(script.frames, defaultOutPath(theory.name));
-    console.log(
-      `Rendered ${rendered.path} ` +
-        `(${rendered.frames} frames, ${rendered.seconds.toFixed(1)}s)`,
-    );
-    video = { ...rendered, frames: script.frames };
+      console.log("\nRendering with ffmpeg...");
+      const rendered = await renderVideo(script.frames, defaultOutPath(theory.name));
+      console.log(
+        `Rendered ${rendered.path} ` +
+          `(${rendered.frames} frames, ${rendered.seconds.toFixed(1)}s)`,
+      );
+      video = { ...rendered, frames: script.frames };
+    } catch (err) {
+      console.error(`\nVideo step failed: ${err.message}`);
+      console.error("Falling back to publishing this as a plain text post.");
+      video = null;
+    }
   }
 
   if (!args.post) {
@@ -204,13 +217,20 @@ async function main() {
   const authorUrn = await resolveAuthorUrn(token);
 
   // A video has to be uploaded and fully processed before it can be attached.
+  // If any of that fails the written post still goes out, without the video.
   let media = null;
   if (video) {
-    const bytes = await readFile(video.path);
-    const videoUrn = await uploadVideo(token, authorUrn, bytes, (m) =>
-      console.log(m),
-    );
-    media = { id: videoUrn, title: theory.name };
+    try {
+      const bytes = await readFile(video.path);
+      const videoUrn = await uploadVideo(token, authorUrn, bytes, (m) =>
+        console.log(m),
+      );
+      media = { id: videoUrn, title: theory.name };
+    } catch (err) {
+      console.error(`\nVideo upload failed: ${err.message}`);
+      console.error("Publishing the text post without it.");
+      video = null;
+    }
   }
 
   console.log(`\nPublishing as ${authorUrn}...`);
@@ -219,7 +239,7 @@ async function main() {
 
   await appendHistory({
     postedAt: new Date().toISOString(),
-    type: asVideo ? "video" : "theory",
+    type: media ? "video" : "theory",
     theory: theory.name,
     category: theory.category,
     text: post.text,
