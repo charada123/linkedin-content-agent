@@ -338,10 +338,13 @@ What would you automate first if you could?`,
   // LinkedIn autoplays muted, so the teaching has to live on screen. Colours are
   // plain hex without a leading '#', because that is what ffmpeg wants.
   video: {
-    // 4:5 portrait. It claims noticeably more feed height than a square on a
-    // phone, which is where nearly all of this gets watched.
+    // 1:1 square. Desktop LinkedIn renders the feed video player at 1:1, so
+    // anything taller (4:5, 9:16) is pillarboxed with hard black down both
+    // sides. A square fills that player exactly. It gives up some feed height
+    // on mobile, which is the trade: set VIDEO_HEIGHT=1350 for 4:5 if you would
+    // rather have the mobile height and accept the desktop bars.
     width: Number(process.env.VIDEO_WIDTH || 1080),
-    height: Number(process.env.VIDEO_HEIGHT || 1350),
+    height: Number(process.env.VIDEO_HEIGHT || 1080),
     fps: Number(process.env.VIDEO_FPS || 30),
 
     // Warm near-black ground, warm off-white copy, one gold accent. `muted` is
