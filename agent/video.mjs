@@ -1,10 +1,11 @@
 // Renders a theory explainer into a silent, caption-style MP4 with ffmpeg.
 //
 // The video autoplays muted, so the teaching lives entirely on screen. The
-// visual language is deliberately editorial rather than "slide deck": a warm
-// near-black ground, one tight grotesque, copy set flush left and anchored to
-// the top of the frame, and a single gold accent used to pick out the words the
-// sentence turns on.
+// visual language is deliberately editorial rather than "slide deck": a pure
+// black ground, one tight grotesque, copy set flush left and anchored to the
+// top of the frame, and a single gold accent used to pick out the words the
+// sentence turns on. The ground is pure black so that the letterbox the feed
+// player pads with is indistinguishable from the frame itself.
 //
 // A frame is a stack of blocks (headline, body, kicker, stat, rule) rather than
 // one lump of centred text. That is what allows a beat to read as a designed
@@ -372,20 +373,33 @@ function buildFilters(frame, geo, fonts, assets, total) {
     );
   }
 
-  // Progress bar. `t` is the time within this segment, so the bar keeps
-  // advancing across the cut rather than restarting each beat.
-  const barH = Math.max(3, Math.round(geo.height * 0.005));
-  filters.push(
-    `drawbox=x=0:y=${geo.height - barH}:h=${barH}:` +
-      `w='(${frame.elapsed.toFixed(3)}+t)/${total.toFixed(3)}*${geo.width}':` +
-      `color=${hex("accent")}:t=fill`,
-  );
-
-  const fade = Math.min(geo.fadeSeconds, frame.seconds / 3);
-  filters.push(`fade=t=in:st=0:d=${fade.toFixed(2)}`);
-  filters.push(`fade=t=out:st=${(frame.seconds - fade).toFixed(2)}:d=${fade.toFixed(2)}`);
-
   return filters.join(",");
+}
+
+// Height of the progress bar along the bottom edge.
+const barHeight = (geo) => Math.max(3, Math.round(geo.height * 0.005));
+
+// Compose one segment's full filter graph.
+//
+// The progress bar is an overlaid strip rather than a drawbox, because
+// drawbox resolves its w expression once when the filter is configured, not per
+// frame: an animated width there silently renders at full width for the whole
+// segment. overlay's x IS evaluated per frame, so the strip is slid in from the
+// left until its right edge sits at the current progress.
+//
+// Fades come last so they act on the composed frame, bar included.
+function buildGraph(frame, geo, fonts, assets, total) {
+  const barH = barHeight(geo);
+  const chain = buildFilters(frame, geo, fonts, assets, total);
+  const progress = `((${frame.elapsed.toFixed(3)}+t)/${total.toFixed(3)}-1)*${geo.width}`;
+  const fade = Math.min(geo.fadeSeconds, frame.seconds / 3);
+
+  return (
+    `[0:v]${chain}[base];` +
+    `[base][1:v]overlay=x='${progress}':y=${geo.height - barH}:shortest=1[bar];` +
+    `[bar]fade=t=in:st=0:d=${fade.toFixed(2)},` +
+    `fade=t=out:st=${(frame.seconds - fade).toFixed(2)}:d=${fade.toFixed(2)}[v]`
+  );
 }
 
 /**
@@ -463,12 +477,23 @@ export async function renderVideo(frames, outPath) {
           "-y", "-loglevel", "error",
           "-f", "lavfi",
           "-i", `color=c=${hex("background")}:s=${geo.width}x${geo.height}:r=${geo.fps}:d=${frame.seconds}`,
-          "-vf", buildFilters(frame, geo, fonts, assets, total),
+          "-f", "lavfi",
+          "-i", `color=c=${hex("accent")}:s=${geo.width}x${barHeight(geo)}:r=${geo.fps}:d=${frame.seconds}`,
+          "-filter_complex", buildGraph(frame, geo, fonts, assets, total),
+          "-map", "[v]",
           "-c:v", "libx264",
           "-pix_fmt", "yuv420p",
           "-profile:v", "high",
           "-preset", "veryfast",
           "-crf", "20",
+          // Tag the colour explicitly. Without this the stream carries no range
+          // or matrix, black is stored as Y=16, and a player that assumes full
+          // range paints it #101010 instead of #000000 - a grey frame sitting
+          // inside the player's true-black letterbox.
+          "-colorspace", "bt709",
+          "-color_primaries", "bt709",
+          "-color_trc", "bt709",
+          "-color_range", "tv",
           segment,
         ],
         { cwd: work },
