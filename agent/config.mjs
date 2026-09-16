@@ -350,7 +350,12 @@ What would you automate first if you could?`,
     // Warm near-black ground, warm off-white copy, one gold accent. `muted` is
     // for supporting lines, `dim` for a deliberately de-emphasised stat, `rule`
     // for dividers.
-    background: process.env.VIDEO_BG || "121110",
+    // Pure black, deliberately. LinkedIn's feed player letterboxes any video
+    // whose aspect does not match its container, and it pads with pure black.
+    // A warm near-black ground made that padding read as a hard border around
+    // the video; matching it exactly makes the padding invisible whatever
+    // aspect the player decides to use. The warmth stays in the type colours.
+    background: process.env.VIDEO_BG || "000000",
     foreground: process.env.VIDEO_FG || "F7F4EE",
     accent: process.env.VIDEO_ACCENT || "E8B44A",
     muted: process.env.VIDEO_MUTED || "8B857A",

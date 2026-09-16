@@ -89,7 +89,7 @@ matters has to be readable on screen.
 1:1 square (1080x1080). Desktop LinkedIn renders the feed video player at 1:1,
 so anything taller gets pillarboxed with hard black down both sides; a square
 fills it exactly. Set `VIDEO_HEIGHT=1350` for 4:5 if you would rather have the
-extra mobile feed height and accept the desktop bars. Warm near-black ground, Inter set flush left and anchored to the top of
+extra mobile feed height and accept the desktop bars. Pure-black ground, Inter set flush left and anchored to the top of
 the frame, and a single gold accent used to pick out the words a sentence turns
 on. A progress bar runs along the bottom, a LinkedIn watermark sits above it on
 every frame, and the brand mark shows on the opening frame.
@@ -132,7 +132,7 @@ which works out to about one video a week.
 | `THEORIES_PER_VIDEO` | `3` | Every Nth theory post becomes a video |
 | `VIDEO_BASELINE_THEORIES` | `14` | Theory posts made before video existed, so the counter starts from now |
 | `VIDEO_WIDTH` / `VIDEO_HEIGHT` | `1080` / `1080` | Canvas size; `1350` gives 4:5 portrait |
-| `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | near-black / off-white / gold | Palette, as bare hex |
+| `VIDEO_BG` / `VIDEO_FG` / `VIDEO_ACCENT` | black / off-white / gold | Palette, as bare hex. The ground is pure black on purpose: it matches the letterbox the feed player pads with, so the padding is invisible |
 | `VIDEO_BRAND` | `Harada Insights` | Brand mark on the opening frame |
 | `VIDEO_WATERMARK` | `https://www.linkedin.com/in/kenzoharada` | Watermark on every frame; empty disables it |
 | `VIDEO_WATERMARK_BADGE` | `true` | Draw the small `in` badge before the watermark |
