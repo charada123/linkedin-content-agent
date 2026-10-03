@@ -7,6 +7,64 @@
 import { config } from "./config.mjs";
 
 const API_BASE = "https://api.linkedin.com";
+const OAUTH_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken";
+
+/**
+ * Get an access token to post with.
+ *
+ * A LinkedIn member access token lasts about 60 days and then every run fails
+ * with EXPIRED_ACCESS_TOKEN until someone pastes in a new one by hand. The
+ * refresh token lasts a year, so when one is configured the agent mints a fresh
+ * access token at the start of every run and the expiry stops being an event.
+ *
+ * Falls back to a static LINKEDIN_ACCESS_TOKEN when no refresh credentials are
+ * set, which is the old behaviour.
+ */
+export async function getAccessToken(log = () => {}) {
+  const refreshToken = process.env.LINKEDIN_REFRESH_TOKEN;
+  const clientId = process.env.LINKEDIN_CLIENT_ID;
+  const clientSecret = process.env.LINKEDIN_CLIENT_SECRET;
+
+  if (refreshToken && clientId && clientSecret) {
+    const res = await fetch(OAUTH_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: clientId,
+        client_secret: clientSecret,
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(
+        `LinkedIn refused to refresh the access token (${res.status}): ${body}\n` +
+          "A refresh token lasts about a year. If it has expired or been revoked, " +
+          "re-run the OAuth flow and update the LINKEDIN_REFRESH_TOKEN secret.",
+      );
+    }
+
+    const json = await res.json();
+    if (!json.access_token) {
+      throw new Error(`LinkedIn refresh returned no access_token: ${JSON.stringify(json)}`);
+    }
+    const days = json.expires_in ? Math.round(json.expires_in / 86400) : null;
+    log(`Minted a fresh LinkedIn access token${days ? ` (valid ~${days} days)` : ""}.`);
+    return json.access_token;
+  }
+
+  const token = process.env.LINKEDIN_ACCESS_TOKEN;
+  if (!token) {
+    throw new Error(
+      "No LinkedIn credentials. Set LINKEDIN_REFRESH_TOKEN, LINKEDIN_CLIENT_ID and " +
+        "LINKEDIN_CLIENT_SECRET so the agent can mint its own token, or set " +
+        "LINKEDIN_ACCESS_TOKEN (which stops working after about 60 days).",
+    );
+  }
+  return token;
+}
 
 function authHeaders(token) {
   return {
@@ -27,6 +85,15 @@ export async function resolveAuthorUrn(token) {
   });
   if (!res.ok) {
     const body = await res.text();
+    if (body.includes("EXPIRED_ACCESS_TOKEN")) {
+      throw new Error(
+        "The LinkedIn access token has expired. These last about 60 days. " +
+          "Either update the LINKEDIN_ACCESS_TOKEN secret with a fresh one, or " +
+          "set LINKEDIN_REFRESH_TOKEN, LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET " +
+          "so the agent renews it on every run and this stops recurring. " +
+          `Response: ${body}`,
+      );
+    }
     throw new Error(
       `Could not resolve author URN via /v2/userinfo (${res.status}). ` +
         `Set LINKEDIN_AUTHOR_URN explicitly, or grant the openid/profile ` +

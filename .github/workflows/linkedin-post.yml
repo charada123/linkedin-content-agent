@@ -30,6 +30,7 @@ on:
 
 permissions:
   contents: write # to commit the updated post history
+  issues: write # to raise an issue when a scheduled run fails
 
 jobs:
   post:
@@ -62,6 +63,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
           LINKEDIN_AUTHOR_URN: ${{ secrets.LINKEDIN_AUTHOR_URN }}
+          # Optional. With these three set the agent mints a fresh access token
+          # every run, so the 60-day expiry stops taking the schedule down.
+          LINKEDIN_REFRESH_TOKEN: ${{ secrets.LINKEDIN_REFRESH_TOKEN }}
+          LINKEDIN_CLIENT_ID: ${{ secrets.LINKEDIN_CLIENT_ID }}
+          LINKEDIN_CLIENT_SECRET: ${{ secrets.LINKEDIN_CLIENT_SECRET }}
           DRY_RUN: ${{ inputs.dry_run }}
           DELETE_URN: ${{ inputs.delete_urn }}
           FORCE_AD: ${{ inputs.force_ad }}
@@ -91,4 +97,38 @@ jobs:
             git add agent/data/history.json
             git commit -m "chore: log LinkedIn post $(date -u +%Y-%m-%d)"
             git push
+          fi
+
+      # The schedule runs unattended, so a failure that only shows in the
+      # Actions tab goes unnoticed for weeks. Keep exactly one open issue: the
+      # first failure opens it, later ones comment on it, so a run of bad days
+      # does not produce a pile of duplicates.
+      - name: Report a failed run
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TITLE: "LinkedIn posting is failing"
+        run: |
+          api() {
+            curl -sS -H "Authorization: Bearer $GH_TOKEN" \
+                 -H "Accept: application/vnd.github+json" "$@"
+          }
+          open_issue=$(api "https://api.github.com/repos/$REPO/issues?state=open&per_page=100" \
+            | jq -r --arg t "$TITLE" '[.[] | select(.title == $t)][0].number // empty')
+
+          today=$(date -u +%Y-%m-%d)
+          if [ -n "$open_issue" ]; then
+            api -X POST "https://api.github.com/repos/$REPO/issues/$open_issue/comments" \
+              -d "$(jq -n --arg b "Failed again on $today. $RUN_URL" '{body: $b}')" > /dev/null
+            echo "Commented on issue #$open_issue."
+          else
+            body="The scheduled LinkedIn post failed on $today, so nothing was published."
+            body="$body"$'\n\n'"Run: $RUN_URL"
+            body="$body"$'\n\n'"The most common cause is an expired LinkedIn access token: they last about 60 days. Setting LINKEDIN_REFRESH_TOKEN, LINKEDIN_CLIENT_ID and LINKEDIN_CLIENT_SECRET lets the agent renew its own token so this stops recurring."
+            body="$body"$'\n\n'"Close this issue once posting resumes."
+            api -X POST "https://api.github.com/repos/$REPO/issues" \
+              -d "$(jq -n --arg t "$TITLE" --arg b "$body" '{title: $t, body: $b}')" > /dev/null
+            echo "Opened a new failure issue."
           fi

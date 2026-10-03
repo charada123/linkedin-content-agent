@@ -173,8 +173,32 @@ and dedupe persist across runs.
    `w_member_social openid profile` to obtain an access token.
 3. Put the token in `LINKEDIN_ACCESS_TOKEN`.
 
-Member access tokens are relatively short-lived (about 60 days). Refresh it on
-that cadence, or use a LinkedIn refresh token to mint new ones.
+### Keeping it signed in
+
+A member access token lasts about **60 days**. When it expires every scheduled
+run fails with `EXPIRED_ACCESS_TOKEN` and nothing is published until someone
+pastes in a new one, which is easy to miss for a week or more.
+
+To stop that recurring, give the agent a refresh token instead. Refresh tokens
+last about a year, and the agent mints a fresh access token at the start of
+every run. Add three secrets:
+
+| Secret | Where it comes from |
+| --- | --- |
+| `LINKEDIN_REFRESH_TOKEN` | Returned alongside the access token by the OAuth flow |
+| `LINKEDIN_CLIENT_ID` | Your app's Auth tab |
+| `LINKEDIN_CLIENT_SECRET` | Your app's Auth tab |
+
+With all three set, `LINKEDIN_ACCESS_TOKEN` is ignored. With any missing, the
+agent falls back to the static token, so nothing breaks if you'd rather not
+bother. Your LinkedIn app has to be approved for programmatic refresh tokens;
+if it isn't, the static token is the only option and it needs replacing every
+two months.
+
+If a scheduled run fails for any reason, the workflow opens a GitHub issue
+("LinkedIn posting is failing") and comments on that same issue on later
+failures, so a dead token surfaces the same day instead of whenever someone
+notices the feed has gone quiet.
 
 ## Notes
 

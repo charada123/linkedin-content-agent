@@ -14,7 +14,13 @@ import { readFile } from "node:fs/promises";
 
 import { config } from "./config.mjs";
 import { generatePost, generateVideoScript } from "./generate.mjs";
-import { resolveAuthorUrn, publishPost, deletePost, uploadVideo } from "./linkedin.mjs";
+import {
+  resolveAuthorUrn,
+  publishPost,
+  deletePost,
+  uploadVideo,
+  getAccessToken,
+} from "./linkedin.mjs";
 import { renderVideo, defaultOutPath } from "./video.mjs";
 import { loadHistory, appendHistory, recent } from "./history.mjs";
 
@@ -104,8 +110,7 @@ async function main() {
 
   // Delete mode: remove a previously published post by URN, then exit.
   if (args.delete) {
-    const token = process.env.LINKEDIN_ACCESS_TOKEN;
-    if (!token) throw new Error("LINKEDIN_ACCESS_TOKEN is not set.");
+    const token = await getAccessToken((m) => console.log(m));
     console.log(`Deleting ${args.delete}...`);
     await deletePost(token, args.delete);
     console.log("Deleted.");
@@ -128,8 +133,7 @@ async function main() {
       return;
     }
 
-    const token = process.env.LINKEDIN_ACCESS_TOKEN;
-    if (!token) throw new Error("LINKEDIN_ACCESS_TOKEN is not set.");
+    const token = await getAccessToken((m) => console.log(m));
     const authorUrn = await resolveAuthorUrn(token);
     console.log(`\nPublishing ad as ${authorUrn}...`);
     const postUrn = await publishPost(token, authorUrn, commentary);
@@ -211,8 +215,7 @@ async function main() {
     return;
   }
 
-  const token = process.env.LINKEDIN_ACCESS_TOKEN;
-  if (!token) throw new Error("LINKEDIN_ACCESS_TOKEN is not set.");
+  const token = await getAccessToken((m) => console.log(m));
 
   const authorUrn = await resolveAuthorUrn(token);
 
