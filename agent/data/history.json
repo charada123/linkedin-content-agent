@@ -644,5 +644,28 @@
     "videoUrn": "urn:li:video:D5610AQGxhBRSYp-T8A",
     "videoSeconds": 63,
     "videoFrames": 10
+  },
+  {
+    "postedAt": "2026-10-05T21:23:56.949Z",
+    "type": "theory",
+    "theory": "Administrative Management Theory (Henri Fayol)",
+    "category": "Management",
+    "text": "Administrative Management Theory: Heroics Are What You Get When Management Is Missing\n\nIn field service, we love the tech who saves the day. We rarely ask why the day needed saving.\n\nThis is Administrative Management Theory, from Henri Fayol. In plain terms, managing is its own job with specific functions: plan, organize, direct, coordinate, and control.\n\nIn a service org that looks like:\n\n• Plan: you know next quarter's install volume before the orders land, not after.\n\n• Organize: parts, training, and territory coverage sized to that plan.\n\n• Direct: one tech, one manager, one clear answer. Fayol called it unity of command, and three people giving a field engineer different priorities is how good people burn out.\n\n• Coordinate: sales, logistics, and service reading the same install date.\n\n• Control: you measure first-time fix and actually do something when it slips.\n\nThe opposite is real too. Over-administer and you get forms where judgment should be.\n\nStructure is not bureaucracy.\n\nStructure is what lets a tech decide fast.\n\nHeroics are a symptom.\n\nWhat if your team never had to be heroic on a Tuesday?\n\nPlanning removes the emergency.\n\nClarity removes the hesitation.\n\nWhich of the five is weakest on your team right now?",
+    "hashtags": [
+      "#AdministrativeManagement",
+      "#HenriFayol",
+      "#FieldService",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#ServiceExcellence",
+      "#OperationalExcellence",
+      "#CustomerExperience",
+      "#Leadership",
+      "#UnityOfCommand",
+      "#FirstTimeFix",
+      "#TeamDevelopment",
+      "#B2BService"
+    ],
+    "urn": "urn:li:share:7512985954077483009"
   }
 ]
