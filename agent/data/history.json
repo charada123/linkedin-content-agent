@@ -697,5 +697,31 @@
       "#B2BService"
     ],
     "urn": "urn:li:share:7513684711349616640"
+  },
+  {
+    "postedAt": "2026-10-08T19:36:38.421Z",
+    "type": "video",
+    "theory": "Human Relations Theory (Elton Mayo)",
+    "category": "Management",
+    "text": "Human Relations Theory: Attention Changes Output More Than Incentives Do\n\nIn medical device service, we redesign comp plans, add a dashboard, buy a new dispatch tool. Then we wonder why the team that felt forgotten last quarter still feels forgotten.\n\nThis is Human Relations Theory, from Elton Mayo. In plain terms, productivity rises when people feel noticed, consulted, and part of a group that matters.\n\nMayo found it on a factory floor. You will find it in a van and in a treatment room.\n\n• Ask a field engineer how a tricky install should be sequenced? He owns the outcome.\n\n• Call a tech only when something breaks? He learns that silence means safety.\n\n• Sit with a clinic's front desk for ten minutes during a PM visit? They start calling you early instead of late.\n\n• Announce a new service process with no input from the people running it? It gets followed on paper.\n\nThe opposite is quietly expensive. Ignored people do the job, not the work.\n\nAttention is not a perk.\n\nBeing asked is a form of pay.\n\nIsolation is the real turnover risk.\n\nWhat if your team believed someone noticed their best week, not just their worst call?\n\nProcess sets the floor.\n\nBelonging raises the ceiling.\n\nWho on your team has not been asked their opinion in a month?",
+    "hashtags": [
+      "#HumanRelationsTheory",
+      "#EltonMayo",
+      "#FieldService",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#ServiceExcellence",
+      "#CustomerExperience",
+      "#Leadership",
+      "#OperationalExcellence",
+      "#EmployeeEngagement",
+      "#Retention",
+      "#TeamCulture",
+      "#HighTouchService"
+    ],
+    "urn": "urn:li:ugcPost:7514046112383770625",
+    "videoUrn": "urn:li:video:D5610AQGddPS3qXQfxw",
+    "videoSeconds": 63.6,
+    "videoFrames": 10
   }
 ]
