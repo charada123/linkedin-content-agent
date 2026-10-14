@@ -774,5 +774,12 @@
       "#HighTouchService"
     ],
     "urn": "urn:li:share:7515864180772626432"
+  },
+  {
+    "postedAt": "2026-10-14T18:14:59.315Z",
+    "type": "ad",
+    "ad": "proof",
+    "article": "https://hbr.org/2025/05/agentic-ai-is-already-changing-the-workforce",
+    "urn": "urn:li:share:7516199891438632960"
   }
 ]
