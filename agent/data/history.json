@@ -807,5 +807,28 @@
     "videoUrn": "urn:li:video:D5610AQHx9MzMVcklzA",
     "videoSeconds": 59.2,
     "videoFrames": 10
+  },
+  {
+    "postedAt": "2026-10-16T17:46:24.685Z",
+    "type": "theory",
+    "theory": "Management by Objectives (Peter Drucker)",
+    "category": "Management",
+    "text": "Management by Objectives: Goals People Help Set Are Goals People Defend\n\nIn medical aesthetics, targets usually arrive at a kickoff meeting. Slides, a number, a round of applause. Six weeks later nobody on the field team can say their number out loud without checking a dashboard.\n\nThis is Management by Objectives, from Peter Drucker. In plain terms, a manager and the person doing the work agree on specific objectives together, then measure results against those objectives instead of against activity.\n\nWhat that looks like in service:\n\n• A field engineer who helped set the first-time fix goal packs the second part before he leaves.\n\n• \"Cut repeat visits in your territory by a third this quarter\" lands harder than \"be more thorough.\"\n\n• A trainer who owns device utilization at 90 days books the follow-up call without being asked.\n\n• Objectives reviewed with the person, not announced about them.\n\nThe opposite is real too. Numbers handed down with no say get managed around, not met.\n\nAn agreed target is a promise.\n\nAn assigned target is a chore.\n\nDrucker called the good version management by self-control.\n\nWhat if every person on your team could state their objective from memory?\n\nAssigned goals get reported. Agreed goals get owned.\n\nWhich number on your team was set with them, and which was set at them?",
+    "hashtags": [
+      "#ManagementByObjectives",
+      "#PeterDrucker",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#FieldService",
+      "#ServiceExcellence",
+      "#CustomerExperience",
+      "#OperationalExcellence",
+      "#Leadership",
+      "#CustomerRetention",
+      "#TeamPerformance",
+      "#Accountability",
+      "#HighTouchService"
+    ],
+    "urn": "urn:li:share:7516917476551577600"
   }
 ]
