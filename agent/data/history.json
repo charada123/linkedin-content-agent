@@ -837,5 +837,27 @@
     "ad": "objection",
     "article": "https://www.microsoft.com/en-us/worklab/work-trend-index/agents-human-agency-and-the-opportunity-for-every-organization",
     "urn": "urn:li:share:7518032074386247680"
+  },
+  {
+    "postedAt": "2026-10-20T18:13:29.240Z",
+    "type": "theory",
+    "theory": "Total Quality Management",
+    "category": "Management",
+    "text": "Total Quality Management: You Cannot Inspect Quality In at the End\n\nIn medical aesthetics, quality often means a final check. A QA signature before the device ships. A survey after the install. By then the problem already reached the customer, and we are just measuring how bad it was.\n\nThis is Total Quality Management, from Deming, Juran, and Feigenbaum. In plain terms, quality is built into every step by every person, not inspected at the end by a few.\n\nWhat that looks like in the field:\n\n• The warehouse tech who verifies the handpiece serial matches the order. One minute saved, one return avoided.\n\n• The scheduler who confirms room readiness before a two-day install.\n\n• The trainer who reports a confusing screen flow back to engineering instead of working around it.\n\n• The engineer who logs the real root cause, not the fastest closing code.\n\nThe opposite is familiar. When quality belongs to one department, everyone else ships the problem forward.\n\nInspection finds defects. Ownership prevents them.\n\nSmall corrections beat big recoveries.\n\nEveryone touches the customer eventually.\n\nWhat if every handoff on your team left the work better than it arrived?\n\nChecks catch mistakes. Habits remove them.\n\nWhere does quality quietly stop being everyone's job on your team?",
+    "hashtags": [
+      "#TotalQualityManagement",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#FieldService",
+      "#ServiceExcellence",
+      "#CustomerExperience",
+      "#OperationalExcellence",
+      "#ContinuousImprovement",
+      "#Leadership",
+      "#CustomerRetention",
+      "#QualityManagement",
+      "#HighTouchService"
+    ],
+    "urn": "urn:li:share:7518373842596102144"
   }
 ]
