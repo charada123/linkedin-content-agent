@@ -859,5 +859,30 @@
       "#HighTouchService"
     ],
     "urn": "urn:li:share:7518373842596102144"
+  },
+  {
+    "postedAt": "2026-10-21T18:20:15.470Z",
+    "type": "video",
+    "theory": "Lean Management",
+    "category": "Management",
+    "text": "Lean Management: If It Does Not Serve the Customer, It Is Just Cost\n\nIn medical device service, we spend a lot of energy getting faster at steps that should not exist. The form gets streamlined. The approval gets automated. Nobody asks why the step is there.\n\nThis is Lean Management, from Toyota. In plain terms, define value the way the customer defines it, then remove everything in the process that does not create it.\n\nLook at where the time actually goes:\n\n• A clinic repeats its serial number and symptom to four different people before anyone touches the device.\n\n• A tech drives back across town for a part that was two aisles from where he started.\n\n• An install waits nine days on an approval that has never once been denied.\n\n• A training deck runs eighty slides, and the staff uses six of them.\n\nThe opposite is worth saying. Lean is not cutting people. It is cutting the work that wastes them.\n\nSpeeding up waste still leaves waste.\n\nAsk why before you ask how fast.\n\nThe customer pays for outcomes, not steps.\n\nWhat if your team removed one step this month instead of optimizing five?\n\nBusy fills the day. Value finishes it.\n\nWhich step on your team survives only because nobody has questioned it?",
+    "hashtags": [
+      "#LeanManagement",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#FieldService",
+      "#ServiceExcellence",
+      "#OperationalExcellence",
+      "#CustomerExperience",
+      "#ContinuousImprovement",
+      "#CustomerRetention",
+      "#Leadership",
+      "#ProcessImprovement",
+      "#HighTouchService"
+    ],
+    "urn": "urn:li:ugcPost:7518737932795625472",
+    "videoUrn": "urn:li:video:D5610AQERuoTkJlQZnw",
+    "videoSeconds": 60.6,
+    "videoFrames": 10
   }
 ]
