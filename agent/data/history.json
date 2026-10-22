@@ -884,5 +884,12 @@
     "videoUrn": "urn:li:video:D5610AQERuoTkJlQZnw",
     "videoSeconds": 60.6,
     "videoFrames": 10
+  },
+  {
+    "postedAt": "2026-10-22T18:13:52.883Z",
+    "type": "ad",
+    "ad": "competitors",
+    "article": "https://www.weforum.org/publications/the-future-of-jobs-report-2025/digest/",
+    "urn": "urn:li:share:7519098716855656449"
   }
 ]
