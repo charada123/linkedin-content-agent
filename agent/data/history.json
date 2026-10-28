@@ -943,5 +943,31 @@
     "ad": "shift",
     "article": "https://www.mckinsey.com/capabilities/tech-and-ai/our-insights/the-economic-potential-of-generative-ai-the-next-productivity-frontier",
     "urn": "urn:li:share:7520924565204541440"
+  },
+  {
+    "postedAt": "2026-10-28T19:13:04.318Z",
+    "type": "video",
+    "theory": "Vroom's Expectancy Theory",
+    "category": "Motivation",
+    "text": "Vroom's Expectancy Theory: People Push Hard Only When the Math Works\n\nIn medical device service, we tell a team the quarterly service revenue goal is within reach. Half of them do not believe it. The other half believe it and do not care what happens if they hit it. Effort stalls in both groups, for different reasons.\n\nThis is Vroom's Expectancy Theory. In plain terms, people work hard when they believe effort leads to performance, performance leads to a reward, and the reward is actually worth something to them.\n\nThree questions every tech runs silently:\n\n• Can I actually do this? If the parts forecast is wrong every week, first-time fix targets feel rigged.\n\n• Will anyone notice if I do? If the recognition goes to whoever closed the most tickets, careful work looks invisible.\n\n• Do I want what is on the other side? A gift card means little to someone chasing a laser certification.\n\nThe opposite is familiar. We raise the goal when the real problem is belief.\n\nUnreachable targets kill effort quietly.\n\nUnclaimed rewards kill it faster.\n\nUnwanted rewards never started it.\n\nWhat if you fixed the belief before you raised the number?\n\nClear odds create effort. Rewards that fit create commitment.\n\nWhich of those three questions is your team answering no to?",
+    "hashtags": [
+      "#ExpectancyTheory",
+      "#Motivation",
+      "#MedicalDevices",
+      "#MedicalAesthetics",
+      "#FieldService",
+      "#ServiceExcellence",
+      "#CustomerExperience",
+      "#Leadership",
+      "#TeamPerformance",
+      "#OperationalExcellence",
+      "#EmployeeEngagement",
+      "#Retention",
+      "#FirstTimeFix"
+    ],
+    "urn": "urn:li:ugcPost:7521287940367634433",
+    "videoUrn": "urn:li:video:D5610AQF7BFvmmwCYZg",
+    "videoSeconds": 68.1,
+    "videoFrames": 10
   }
 ]
