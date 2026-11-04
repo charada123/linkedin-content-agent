@@ -1046,5 +1046,12 @@
     "videoUrn": "urn:li:video:D5610AQG3L9FvJE6xBQ",
     "videoSeconds": 54.4,
     "videoFrames": 10
+  },
+  {
+    "postedAt": "2026-11-04T20:37:58.063Z",
+    "type": "ad",
+    "ad": "objection",
+    "article": "https://www.microsoft.com/en-us/worklab/work-trend-index/agents-human-agency-and-the-opportunity-for-every-organization",
+    "urn": "urn:li:share:7523846018417901568"
   }
 ]
