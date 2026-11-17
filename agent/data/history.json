@@ -1209,5 +1209,12 @@
     "videoUrn": "urn:li:video:D5610AQG2QXL4yVwIWw",
     "videoSeconds": 63.3,
     "videoFrames": 10
+  },
+  {
+    "postedAt": "2026-11-17T21:58:36.237Z",
+    "type": "ad",
+    "ad": "proof",
+    "article": "https://hbr.org/2025/05/agentic-ai-is-already-changing-the-workforce",
+    "urn": "urn:li:share:7528577353644507139"
   }
 ]
